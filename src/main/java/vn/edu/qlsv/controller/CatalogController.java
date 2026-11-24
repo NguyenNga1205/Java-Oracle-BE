@@ -190,6 +190,24 @@ public class CatalogController {
                 classStudents.stream().map(this::summary).toList(), currentCount);
     }
 
+    @GetMapping("/next-code/{type}")
+    public Map<String, String> nextCode(@PathVariable String type) {
+        String prefix;
+        java.util.stream.Stream<String> codes;
+        if (type.equals("students")) {
+            prefix = "SV";
+            codes = students.findAll().stream().map(s -> s.code);
+        } else if (type.equals("teachers")) {
+            prefix = "GV";
+            codes = teachers.findAll().stream().map(t -> t.code);
+        } else
+            throw badInput("Unsupported type");
+        int max = codes.filter(Objects::nonNull).map(String::toUpperCase).filter(code -> code.startsWith(prefix))
+                .map(code -> code.substring(prefix.length())).filter(s -> s.matches("[0-9]{1,9}"))
+                .mapToInt(Integer::parseInt).max().orElse(0);
+        return Map.of("code", prefix + String.format("%03d", max + 1));
+    }
+
     @GetMapping("/{type}")
     public Object list(@PathVariable String type, Authentication auth) {
         if (type.equals("class-subjects"))
@@ -413,11 +431,14 @@ public class CatalogController {
             }
             case "teachers": {
                 Teacher x = id == null ? new Teacher() : required(teachers.findById(id));
+                String oldTeacherCode = x.code;
                 x.code = str(d, "code");
                 x.fullName = str(d, "fullName");
                 x.email = str(d, "email");
                 nonblank(x.code, "code");
                 nonblank(x.fullName, "fullName");
+                if ((oldTeacherCode == null || !oldTeacherCode.equalsIgnoreCase(x.code)) && teachers.existsByCodeIgnoreCase(x.code))
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Mã giảng viên đã tồn tại");
                 Faculty faculty = required(faculties.findById(requiredNumber(d, "facultyId")));
                 if (id != null && x.faculty != null && !x.faculty.id.equals(faculty.id)
                         && (classroomSubjects.existsByTeacher_Id(x.id) || !classes.findByTeacher_Id(x.id).isEmpty()))
@@ -467,6 +488,7 @@ public class CatalogController {
             case "students": {
                 Student x = id == null ? new Student() : required(students.findById(id));
                 StudentStatus previousStatus = x.status;
+                String oldStudentCode = x.code;
                 x.code = str(d, "code");
                 x.fullName = str(d, "fullName");
                 x.email = str(d, "email");
@@ -474,6 +496,8 @@ public class CatalogController {
                 x.gender = gender(str(d, "gender"));
                 nonblank(x.code, "code");
                 nonblank(x.fullName, "fullName");
+                if ((oldStudentCode == null || !oldStudentCode.equalsIgnoreCase(x.code)) && students.existsByCodeIgnoreCase(x.code))
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Mã sinh viên đã tồn tại");
                 String dob = str(d, "dateOfBirth");
                 if (dob != null && !dob.isBlank())
                     x.dateOfBirth = date(dob);
@@ -510,8 +534,8 @@ public class CatalogController {
             case "subjects" -> "Không thể xóa môn học vì đang được mở cho một hoặc nhiều lớp. Hãy xóa các lớp–môn liên quan trước.";
             case "class-subjects" -> "Không thể xóa môn học của lớp vì sinh viên đã đăng ký. Hãy xóa các đăng ký sinh viên trước.";
             case "student-subjects" -> "Không thể xóa đăng ký môn học.";
-            case "teachers" -> "Không thể xóa giảng viên vì đang phụ trách lớp, dạy môn trong lớp hoặc có tài khoản liên kết. Hãy gỡ các liên kết này trước.";
-            case "students" -> "Không thể xóa sinh viên vì đang có tài khoản hoặc đăng ký môn học liên kết. Hãy gỡ các liên kết trước.";
+            case "teachers" -> "Không thể xóa giảng viên vì đang phụ trách lớp, dạy môn trong lớp Hãy gỡ các liên kết này trước.";
+            case "students" -> "Không thể xóa sinh viên vì đang có đăng ký môn học liên kết. Hãy gỡ các liên kết trước.";
             default -> "Không thể xóa bản ghi vì dữ liệu khác đang tham chiếu đến bản ghi này. Hãy gỡ các liên kết trước.";
         };
     }
@@ -525,6 +549,10 @@ public class CatalogController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy bản ghi cần xóa.");
 
         try {
+            if (type.equals("students"))
+                users.deleteByStudent_Id(id);
+            else if (type.equals("teachers"))
+                users.deleteByTeacher_Id(id);
             repo.deleteById(id);
             repo.flush();
         } catch (DataIntegrityViolationException e) {
