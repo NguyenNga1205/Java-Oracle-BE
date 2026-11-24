@@ -54,10 +54,14 @@ public class AdminController {
         if (u.role == Role.STUDENT) {
             if (d.studentId() == null)
                 throw badInput("studentId is required");
+            if (users.existsByStudent_Id(d.studentId()))
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Sinh viên này đã có tài khoản");
             u.student = students.findById(d.studentId()).orElseThrow(() -> badInput("Invalid studentId"));
         } else {
             if (d.teacherId() == null)
                 throw badInput("teacherId is required");
+            if (users.existsByTeacher_Id(d.teacherId()))
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Giảng viên này đã có tài khoản");
             u.teacher = teachers.findById(d.teacherId()).orElseThrow(() -> badInput("Invalid teacherId"));
         }
         users.save(u);
@@ -66,8 +70,51 @@ public class AdminController {
 
     @GetMapping("/users")
     public List<Map<String, Object>> list() {
-        return users.findAll().stream().map(u -> Map.<String, Object>of("id", u.id, "username", u.username, "role",
-                u.role.name(), "enabled", u.enabled)).toList();
+        return users.findAll().stream().map(u -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", u.id);
+            m.put("username", u.username);
+            m.put("role", u.role.name());
+            m.put("enabled", u.enabled);
+            m.put("studentId", u.student == null ? null : u.student.id);
+            m.put("teacherId", u.teacher == null ? null : u.teacher.id);
+            m.put("fullName", u.student != null ? u.student.fullName : u.teacher != null ? u.teacher.fullName : null);
+            m.put("code", u.student != null ? u.student.code : u.teacher != null ? u.teacher.code : null);
+            return m;
+        }).toList();
+    }
+
+    record EnabledBody(Boolean enabled) {
+    }
+
+    record PasswordBody(String password) {
+    }
+
+    private UserAccount managed(Long id) {
+        UserAccount u = users.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (u.role == Role.ADMIN)
+            throw badInput("Không thể thay đổi tài khoản quản trị viên");
+        return u;
+    }
+
+    @PutMapping("/users/{id}/enabled")
+    public Map<String, Object> setEnabled(@PathVariable Long id, @RequestBody EnabledBody body) {
+        if (body.enabled() == null)
+            throw badInput("enabled is required");
+        UserAccount u = managed(id);
+        u.enabled = body.enabled();
+        users.save(u);
+        return Map.of("id", u.id, "enabled", u.enabled);
+    }
+
+    @PutMapping("/users/{id}/password")
+    public Map<String, Object> resetPassword(@PathVariable Long id, @RequestBody PasswordBody body) {
+        if (body.password() == null || body.password().length() < 8)
+            throw badInput("Password (8+ chars) required");
+        UserAccount u = managed(id);
+        u.passwordHash = encoder.encode(body.password());
+        users.save(u);
+        return Map.of("id", u.id);
     }
 
     @GetMapping("/stats")

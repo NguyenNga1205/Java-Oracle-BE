@@ -2,4 +2,8 @@ package vn.edu.qlsv.repository;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import vn.edu.qlsv.model.UserAccount;
-public interface UserAccountRepository extends JpaRepository<UserAccount,Long> { Optional<UserAccount> findByUsername(String username); }
+public interface UserAccountRepository extends JpaRepository<UserAccount,Long> {
+    Optional<UserAccount> findByUsername(String username);
+    boolean existsByStudent_Id(Long studentId);
+    boolean existsByTeacher_Id(Long teacherId);
+}
