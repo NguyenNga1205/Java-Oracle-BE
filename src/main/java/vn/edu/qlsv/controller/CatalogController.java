@@ -534,7 +534,7 @@ public class CatalogController {
             case "subjects" -> "Không thể xóa môn học vì đang được mở cho một hoặc nhiều lớp. Hãy xóa các lớp–môn liên quan trước.";
             case "class-subjects" -> "Không thể xóa môn học của lớp vì sinh viên đã đăng ký. Hãy xóa các đăng ký sinh viên trước.";
             case "student-subjects" -> "Không thể xóa đăng ký môn học.";
-            case "teachers" -> "Không thể xóa giảng viên vì đang phụ trách lớp, dạy môn trong lớp Hãy gỡ các liên kết này trước.";
+            case "teachers" -> "Không thể xóa giảng viên vì đang phụ trách lớp, dạy môn trong lớp. Hãy gỡ các liên kết này trước.";
             case "students" -> "Không thể xóa sinh viên vì đang có đăng ký môn học liên kết. Hãy gỡ các liên kết trước.";
             default -> "Không thể xóa bản ghi vì dữ liệu khác đang tham chiếu đến bản ghi này. Hãy gỡ các liên kết trước.";
         };
