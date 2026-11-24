@@ -14,7 +14,7 @@ Schema và dữ liệu mẫu do Flyway tự migrate khi khởi động (`src/mai
 
 ## Tài khoản mẫu
 
-Mật khẩu chung `Demo@2026!` (chỉ dùng cho bài tập): `admin`, `teacher01`–`teacher08`, `student01`–`student20`.
+Chỉ còn tài khoản `admin` (mật khẩu `Demo@2026!`, chỉ dùng cho bài tập). Dữ liệu mẫu ở V2 được V3 xoá; tạo dữ liệu qua giao diện Admin.
 
 ## Biến môi trường
 
