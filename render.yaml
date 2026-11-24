@@ -1,0 +1,23 @@
+# Render Blueprint for the backend. The PostgreSQL instance already exists on Render
+# (java_oracle), so only the web service is declared; DB credentials are set in the dashboard.
+services:
+  - type: web
+    name: java-oracle-be
+    runtime: docker
+    region: singapore # must match the database region to use the internal hostname
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: DB_HOST
+        sync: false # internal hostname, e.g. dpg-xxxx-a
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: java_oracle
+      - key: DB_USER
+        value: java_oracle_user
+      - key: DB_PASSWORD
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false # e.g. https://your-app.vercel.app

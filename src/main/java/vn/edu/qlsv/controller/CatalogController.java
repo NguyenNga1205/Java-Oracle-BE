@@ -91,7 +91,7 @@ public class CatalogController {
 
     private String generateCode(String sequenceName, String prefix) {
         Number number = (Number) entityManager
-                .createNativeQuery("SELECT " + sequenceName + ".NEXTVAL FROM DUAL")
+                .createNativeQuery("SELECT nextval('" + sequenceName + "')")
                 .getSingleResult();
         return prefix + String.format("%03d", number.longValue());
     }

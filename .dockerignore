@@ -1,0 +1,4 @@
+target/
+.omc/
+*.log
+.env

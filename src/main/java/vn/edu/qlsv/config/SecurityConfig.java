@@ -1,5 +1,6 @@
 package vn.edu.qlsv.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
@@ -31,9 +32,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
+    CorsConfigurationSource corsConfigurationSource(
+            @Value("${app.cors.allowed-origins}") List<String> allowedOrigins) {
         var c = new CorsConfiguration();
-        c.setAllowedOrigins(List.of("http://localhost:3000"));
+        c.setAllowedOriginPatterns(allowedOrigins);
         c.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         c.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         var s = new UrlBasedCorsConfigurationSource();
