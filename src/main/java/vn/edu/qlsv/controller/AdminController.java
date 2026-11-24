@@ -117,6 +117,12 @@ public class AdminController {
         return Map.of("id", u.id);
     }
 
+    @DeleteMapping("/users/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable Long id) {
+        users.delete(managed(id));
+    }
+
     @GetMapping("/stats")
     public Map<String, Object> stats() {
         return Map.of("students", students.count(), "classes", classes.count(), "faculties", faculties.count(), "years",

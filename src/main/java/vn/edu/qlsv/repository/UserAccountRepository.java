@@ -6,4 +6,6 @@ public interface UserAccountRepository extends JpaRepository<UserAccount,Long> {
     Optional<UserAccount> findByUsername(String username);
     boolean existsByStudent_Id(Long studentId);
     boolean existsByTeacher_Id(Long teacherId);
+    void deleteByStudent_Id(Long studentId);
+    void deleteByTeacher_Id(Long teacherId);
 }

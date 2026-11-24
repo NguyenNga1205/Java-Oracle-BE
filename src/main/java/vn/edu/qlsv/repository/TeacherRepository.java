@@ -4,4 +4,5 @@ import vn.edu.qlsv.model.Teacher;
 import java.util.List;
 public interface TeacherRepository extends JpaRepository<Teacher,Long> {
  List<Teacher> findByFaculty_Id(Long facultyId);
+ boolean existsByCodeIgnoreCase(String code);
 }

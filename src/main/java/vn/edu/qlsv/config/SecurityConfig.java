@@ -47,7 +47,7 @@ public class SecurityConfig {
     SecurityFilterChain security(HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable()).cors(Customizer.withDefaults())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(a -> a.requestMatchers("/api/health").permitAll()
+                .authorizeHttpRequests(a -> a.requestMatchers("/api/health", "/error").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/catalog/teaching-classes", "/api/catalog/teaching-classes/**")
                         .hasAnyRole("ADMIN", "TEACHER")
